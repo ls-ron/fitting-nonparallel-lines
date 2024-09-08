@@ -1,0 +1,333 @@
+---
+title: "STATS 201/8 Assignment 3"
+author: "Ronald Voivod 351763490/rvoi918"
+date: 'Due Date: 3pm, Thursday 22nd August'
+output:
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+  word_document:
+    number_sections: yes
+  pdf_document:
+    number_sections: yes
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.height=3)
+```
+
+```{r setup, echo=FALSE, warning=FALSE}
+## Do not delete this!
+## It loads the s20x library for you. If you delete it 
+## your document may not compile
+library(s20x)
+```
+
+# Question 1 [18 Marks]
+
+The manager of a company wants to investigate which section they should advertise their sport equipment in local newspapers, and they want to know how many inquiries they will receive resulting from the advertisement. They advertised their products in 200 local newspapers around America.  They randomly allocated the newspapers into two groups. In one group they advertised in the business section of the paper, while in the other they advertised in the sports section. The company recorded the number of inquiries resulting from the advertisement in each of the areas.
+
+The dataset is stored in *advertise.csv* and includes variables:
+
+Variable   | Description
+-----------|-------------------------------------------------------
+Inquiries  | The number of inquiries resulting from the advertisement in an area.
+Section    | The section of the local newspaper (Business or Sports) the advertisement was placed in for that area.
+
+The questions the manager is particularly interested in are: does there tend to be a difference in the number of inquiries depending on which section they advertise in? If so, how big is the difference? Also, they want to estimate the average amount of inquiries generated when advertising in the section that gives the best results (give both estimates if you can’t decide).
+
+**Instructions:**
+
+*	Make sure you change your name and UPI/ID number at the top of the assignment.
+*	Comment on the plots and summary statistics of the data.
+* Comment why it is more appropriate to use a log model for this data. (Consider the shape of the data here and discuss what is a likely explanation for this distribution.)
+* Fit an appropriate model to the data. Check the model assumptions.
+* Write appropriate Methods and Assumption Checks.
+*	Write an appropriate **Executive Summary**. (Remember to answer ALL the questions asked.)
+
+## Question of interest/goal of the study
+
+It was of interest to learn where to advertise the company's product. We also want to know how many inquiries the company tended to received resulting from the advertisement. 
+
+## Read in and inspect the data:
+
+```{r,fig.height=3.5,fig.width=6}
+advertise.df=read.csv("advertise.csv",header=T, stringsAsFactors = TRUE)
+boxplot(Inquiries~Section,horizontal=TRUE,data=advertise.df)
+summaryStats(Inquiries~Section,data=advertise.df)
+boxplot(log(Inquiries)~Section,horizontal=TRUE,data=advertise.df)
+summaryStats(log(Inquiries)~Section,data=advertise.df)
+```
+
+## Comment on plots and summary statistics
+
+Inquiries are on average higher and more varied when ads are run in the business section compared to the sports section. The summary statistics represent that using both the mean and median.
+
+Using log on inquiries reduces the variability and makes the two sections look more similar. Where it seems business is still better to advertise in compared to sports. 
+
+
+## Comment why it is more appropriate to use a log model for this data. (Consider the shape of the data here and discuss what is a likely explanation for this distribution.)
+
+Since variability is different between each section, i.e. there is nearly twice the standard deviation in business ads than sports ads, using log will greatly reduce the variability between each category.
+
+It seems that business section ads get far more people to inquire. This can be seen at a larger rate with larger outlier values. This could be due to people's values and desire. For example, maybe a person reading the sports section skims over to find the result of the game and nothing else, or maybe people interested in the business section are wealthier and/or more interested in the product being sold by the company. 
+
+
+## fit model and check assumptions
+```{r,fig.height=5,fig.width=6}
+inquiries.fit1 = lm(log(Inquiries)~Section, advertise.df)
+modelcheck(inquiries.fit1)
+summary(inquiries.fit1)
+round(exp(confint(inquiries.fit1)[2,]), 3)
+100 * (exp(-confint(inquiries.fit1)[2,])-1)
+```
+
+## Method and Assumption Checks
+
+The boxplots of inquiries vs section showed that the data was right-skewed. Using log(inquiries) helped reduce majority of the variability. Therefore we fitted a linear model with log(inquiries) being shown through business vs sports section ads.
+
+The data seems to relatively normal with a normal distribution of the histogram residuals and Q-Q residuals being relatively close to normal. The residuals vs fitted seem constantly scattered, and there seems to be no influential points in the cooks plot.
+
+Independence is satisfied since they ran ads in randomly allocated places. Model assumptions are satisfied.
+
+Our model is: 
+$log(Inquiries_i) = \beta_0 + \beta_1 \times Sports_i + \epsilon_i$ where $Sports_i = 1$ if the the $i$th ad is ran in the sports section and is 0 otherwise, additionally: $\epsilon_i \sim iid ~N(0, \sigma^2)$
+
+Our model explained 8% of the variation in the data.
+
+
+
+## Executive Summary (Remember to answer ALL the questions asked.)
+
+We found strong evidence that there tends to be a difference in the number of inquiries depending on which section the company advertises in, with business sections leading to more inquiries on average.
+ 
+On average, the business section provides between 39-149% (rounded to whole numbers) more inquiries
+
+The best average amount of inquiries estimate is in the business section with a median value of 10. This is more indicative of the average, as the mean is pulled up by the outliers in the dataset.
+
+
+
+# Question 2 [9 Marks]
+
+‘Earning time’ is a measure of purchasing power in cities around the world. For a worker earning the average wage in a given city, it measures how much time must be worked in order to pay for a commodity such as a Big Mac burger or an iPhone in that city. The earning time of an item is therefore a measure of the effective price of the item relative to earnings.
+ 
+In 2009 the UBS bank compiled data on earning times for various commodities in 72 cities around the world. We wish to investigate how the earning time for an expensive commodity (the iPhone 4S) compares with that of a cheap commodity (a Big Mac burger). In particular, we wish to investigate how iPhone earning times change as Big Mac earning times increase: what is the percentage change in earning time for the iPhone, for every 50% increase in Big Mac earning times? 
+
+The resulting data is in the file *EarningTimes.csv*, which contains the variables:
+
+Variable  | Description
+----------|--------------------------------------------------------
+City      | The city name,   
+iPhone    | The earning time for the iPhone 4S in that city, measured in hours,
+BigMac    | The  earning time for a BigMac burger in that city, measured in minutes.
+
+For this question we have provided you all the relevant output you need AND some **incorrect** output. You do not need to provide any additional output. Just answer the questions. 
+
+**Instructions:**
+
+*	Look at the three initial plots of the data and comment on them. 
+* State why a log-log (power) model is appropriate here.
+* Do we have evidence that earning time for one of these items (iPhone or BigMac) grows more quickly than that of the other as we range from cheaper to more expensive cities? If so, which item? If not, justify your answer with a relevant *P-value*.
+*	Write a sentence (as if for an **Executive Summary**) quantifying the percentage change in earning time for the iPhone, for every 50% increase in Big Mac earning times.
+
+## Question of interest/goal of the study
+
+We wish to model the relationship between earning time for iPhones and Big Mac burgers in major cities of the world. In particular, we wish to investigate the percentage change in earning time for the iPhone, for every 50% increase in Big Mac earning time. 
+
+
+## Read in and inspect the data:
+
+```{r,fig.height=4,fig.width=7}
+earnings.df=read.csv("EarningTimes.csv",header=T, stringsAsFactors = TRUE)
+trendscatter(iPhone~BigMac, main="Time to earn iPhone vs BigMac", data=earnings.df)
+trendscatter(log(iPhone)~BigMac, main="log(iPhone) vs BigMac", data=earnings.df)
+trendscatter(log(iPhone)~log(BigMac),main="log(iPhone) vs log(BigMac)",data=earnings.df)
+
+```
+
+## Comment on plot and summary statistics.
+
+There seems to be a rough linear increasing relationship between time to earn an iPhone vs Big Mac. There seems to be a left skew with a greater concentration of data points at lower values of x, with increasing scatter and variation at higher values of x.
+
+
+## State why a log-log (power) model is appropriate here 
+
+The concentration of data points are caused by a more exponential distribution, additionally, variability is not constant across the model, revealing a pattern of increasing scatter.
+
+Therefore A log-log model would be better than a simple line as it solves this problem. It would be better than a log-linear model too because it adjusts for the fact that both variables may increase exponentially (as seen by, reduced, but still increasing scatter).
+
+
+
+## Fit an appropriate linear model and Check Assumptions 
+
+```{r,fig.height=4,fig.width=6}
+earnings.fit <- lm(log(iPhone) ~ log(BigMac), data=earnings.df)
+modelcheck(earnings.fit)
+summary(earnings.fit)
+
+confint(earnings.fit)
+
+100*( 0.50*confint(earnings.fit)[2,] - 1 )
+100*( 1.50*confint(earnings.fit)[2,] - 1 )
+100*( 0.50^confint(earnings.fit)[2,] - 1 )
+100*( 1.50^confint(earnings.fit)[2,] - 1 )
+
+```
+
+
+## Write a sentence (as if for an **Executive Summary**) quantifying the percentage change in earning time for the iPhone, for every 50% increase in Big Mac earning times.
+
+For each 50% increase in the price of a Big Mac, there is a 57% to 73% (rounded to whole numbers) increase in the earning time of an iPhone
+
+
+
+## Do we have evidence that earning time for one of these items (iPhone or BigMac) grows more quickly than that of the other as we range from cheaper to more expensive cities? If so, which item? If not, justify your answer with a relevant *P-value*.
+
+Yes, we have evidence for this. In earning time, iPhones grow quicker in value than Big Macs.
+
+See previous answer to see the confidence interval values for how much a 50% increase in Big Macs affects the increase in earning time for iPhones.
+
+
+***
+
+# Question 3 [19 Marks]
+
+Electricity distribution companies need to keep a close watch on demand patterns during the winter, to ensure that power lines and other infrastructure are not overloaded. A researcher was interested in how electricity demand was affected by temperature and whether this differed between Auckland and Christchurch. He studied the electricity demand for central Auckland and central Christchurch, taking a random sample of days and times from the winter of 2023 and then recording the temperature and electricity use for that day at that time.
+
+The resulting data is in the file *Power3.csv*, which contains the variables:
+
+Variable    | Description
+------------|--------------------------------------------------------
+Demand      | The electric power consumed over an hour (kilowatts),
+Temperature | The local air temperature measured at a nearby weather station (degrees Celsius),
+City        | The city at which the recording was made (either Auckland or Christchurch).
+
+
+For this question we are particularly interested in:
+
+* Do the effects of temperature on electricity usage differ between the two cities.
+* Estimating the effects of a 1 degree change in temperature on electricity demand for each city.
+
+
+**Instructions:**
+
+*	Comment on plot and summary statistics.
+* Fit an appropriate model to the data. Check the model assumptions.
+* Comment why we do not need to transform the response in this data. 
+* Plot the data with your appropriate model superimposed over it.
+* Write appropriate Methods and Assumption Checks.
+* Does the relationship between power use and temperature depend on the city? Justify your answer, including a relevant *P-value*. 
+* Write sentences (as if for an **Executive Summary**) quantifying the the estimated effect of a one degree increase in temperature on the amount of power used for **both** Auckland and Christchurch.
+
+
+
+## Question of interest/goal of the study
+
+Do the effects of temperature on electricity usage differ between the Auckland and Christchurch? What are the estimated effects of a 1 degree change in temperature on electricity demand for each city.
+
+## Read in and inspect the data:
+
+```{r,fig.height=5,fig.width=7}
+Power.df=read.csv("Power3.csv",header=T, stringsAsFactors = TRUE)
+
+plot(Demand~Temperature,pch=ifelse(City == "Auckland", 'A', 'C'),
+     col=ifelse(City == "Auckland", 'blue', 'red'), main="Power use by Temperature",
+     xlab="Temperature (degrees Celsius)",ylab="Power use (kilowatts)",data=Power.df)
+legend("bottomleft",pch=c("A","C"),col=c('blue','red'),legend=c("Auckland","Christchurch"))
+```
+
+## Comment on plot
+
+Power use by temperature in Christchurch may have a slightly negative linear relationship, with slightly less power use as temperature increases.
+
+Power use by temperature in Auckland seems to have a negative linear relationship with less power used as temperature increases.
+
+
+## Fit an appropriate linear model and Check Assumptions 
+
+```{r,fig.height=5,fig.width=6}
+#first model
+power.fit1 = lm(Demand~Temperature*City, data=Power.df)
+modelcheck(power.fit1)
+summary(power.fit1)
+confint(power.fit1)
+
+#second model
+Power.df = within(Power.df, {CityR = factor(City, levels=c("Auckland", "Christchurch"))})
+power.fit2 = lm(Demand~Temperature*CityR, data=Power.df)
+summary(power.fit2)
+confint(power.fit2)
+
+```
+
+
+## Comment why we do not need to transform the response in this data. 
+
+We do not need to transform the response because we are using a simple linear model with only one variable (aka 2 simple lines). Transforming the response would be done in the case of a model using log.
+
+
+## Plot the data with your appropriate model superimposed over it
+```{r,fig.height=4.5,fig.width=6}
+plot(Demand~Temperature,pch=ifelse(City == "Auckland", 'A', 'C'),
+     col=ifelse(City == "Auckland", 'blue', 'red'), main="Power use by Temperature",
+     xlab="Temperature (degrees Celsius)",ylab="Power use (kilowatts)",data=Power.df)
+legend("bottomleft",pch=c("A","C"),col=c('blue','red'),legend=c("Auckland","Christchurch"))
+
+ests <- coef(power.fit1)
+abline(ests[1], ests[2], col="blue")
+abline(ests[1] + ests[3], ests[2] + ests[4], col="red")
+
+
+```
+
+
+## Method and Assumption Checks
+
+We fitted two simple linear models with one variable.
+
+The data seems normal. The histogram has a normal distribution and Q-Q residuals are fairly close to normal. The residuals vs fitted seem to have constantly scatter based on the city, and there seems to be no influential points in the cooks plot.
+
+Independence is satisfied since houses were picked on random days at random times independent of each other. Model assumptions are satisfied.
+
+Our model is: 
+$Demand_i = \beta_0 + \beta_1 \times Temperature_i + \beta_2 \times City_i + \beta_3 \times Temperature_i \times City_i + \epsilon_i$ where $City_i = 1$ if the the $i$th city is Auckland and is 0 otherwise, additionally: $\epsilon_i \sim iid ~N(0, \sigma^2)$
+
+Our model explained 87% (rounded to whole numbers) of the variation in the data.
+
+
+
+
+##  Does the relationship between power use and temperature depend on the city? Justify your answer, including a relevant *P-value*. 
+
+The data shows two different slopes, nonparallel lines, which show different linear relationships depending on which city. This is due to perhaps colder temperatures on average requiring a roughly similar power use irrespective of how much colder it is ~10 degrees, or people from that area being more comfortable with using electricity to heat their homes rather than Auckland.
+
+We have evidence for this, where there is a statistically significant p-value of 0.0002. This is well below 2 or even 3 standard deviations. 
+
+This evidence shows that there is a clear relationship between power use and temperature depending on which city.
+
+
+
+## Write sentences (as if for an **Executive Summary**) quantifying the the estimated effect of a one degree increase in temperature on the amount of power used for **both** Auckland and Christchurch.
+
+We wanted to discover the effect a one degree increase in temperature would have on power use (kW).
+
+We have evidence of a relationship between power use and temperature change for both cities.
+
+Our estimate, on average, is between -2258kW and -1251kW used for each temperature change increase of one degree celsius.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
